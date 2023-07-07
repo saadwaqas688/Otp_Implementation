@@ -197,5 +197,40 @@ router.get('/users', (req, res) => {
     
       res.status(201).json({ message: 'User registered successfully' });
     });
+
+
+
+
+    router.get('/teams', async (req, res) => {
+      const { search, filter } = req.query;
+    
+      let query = 'SELECT * FROM teams';
+      const values = [];
+    
+      // Append the search and filter conditions to the query and values array
+      if (search) {
+        query += ' WHERE team_name ILIKE $1';
+        values.push(`%${search}%`);
+      }
+    
+      if (filter) {
+        if (values.length === 0) {
+          query += ' WHERE';
+        } else {
+          query += ' AND';
+        }
+        query += ' company_id = $' + (values.length + 1);
+        values.push(filter);
+      }
+    
+      try {
+        const result = await db.query(query, values);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error executing query', error);
+        res.status(500).json({ error: 'An unexpected error occurred' });
+      }
+    });
+    
     
     module.exports = router;
